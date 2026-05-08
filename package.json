@@ -1,43 +1,43 @@
 {
-  "name": "@ddgold/homebridge-litter-robot",
-  "version": "0.1.0",
-  "description": "Homebridge plugin for Litter Robot",
-  "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "config.schema.json"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "lint": "eslint src/",
-    "format": "prettier --write src/",
-    "prepublishOnly": "npm run build"
-  },
-  "keywords": [
-    "homebridge-plugin"
-  ],
-  "author": "ddgold",
-  "license": "MIT",
-  "engines": {
-    "node": ">=24.0.0",
-    "homebridge": ">=2.0.0"
-  },
-  "peerDependencies": {
-    "homebridge": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.0.0",
-    "eslint": "^9.0.0",
-    "eslint-config-prettier": "^9.0.0",
-    "homebridge": "^2.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0",
-    "typescript-eslint": "^8.0.0"
-  },
-  "dependencies": {
-    "amazon-cognito-identity-js": "^6.3.16"
-  }
+	"name": "@ddgold/homebridge-litter-robot",
+	"version": "0.1.0",
+	"description": "Homebridge plugin for Litter Robot",
+	"type": "module",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"files": [
+		"dist",
+		"config.schema.json"
+	],
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc -w",
+		"lint": "eslint src/",
+		"format": "prettier --write src/",
+		"prepare": "npm run build"
+	},
+	"keywords": [
+		"homebridge-plugin"
+	],
+	"author": "ddgold",
+	"license": "MIT",
+	"engines": {
+		"node": ">=24.0.0",
+		"homebridge": ">=2.0.0"
+	},
+	"peerDependencies": {
+		"homebridge": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/node": "^24.0.0",
+		"eslint": "^9.0.0",
+		"eslint-config-prettier": "^9.0.0",
+		"homebridge": "^2.0.0",
+		"prettier": "^3.0.0",
+		"typescript": "^5.0.0",
+		"typescript-eslint": "^8.0.0"
+	},
+	"dependencies": {
+		"amazon-cognito-identity-js": "^6.3.16"
+	}
 }
