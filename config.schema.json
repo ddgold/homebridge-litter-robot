@@ -1,0 +1,30 @@
+{
+	"pluginAlias": "LitterRobot",
+	"pluginType": "platform",
+	"singular": true,
+	"schema": {
+		"type": "object",
+		"properties": {
+			"username": {
+				"title": "Account Email",
+				"description": "Your Whisker account email address.",
+				"type": "string",
+				"format": "email",
+				"required": true
+			},
+			"password": {
+				"title": "Account Password",
+				"description": "Your Whisker account password.",
+				"type": "string",
+				"required": true
+			},
+			"pollRate": {
+				"title": "Poll Rate",
+				"description": "How often (in seconds) to sync devices from the Whisker API. Defaults to 300 (5 minutes).",
+				"type": "integer",
+				"minimum": 60,
+				"default": 300
+			}
+		}
+	}
+}
