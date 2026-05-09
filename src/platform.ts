@@ -10,19 +10,14 @@ export const PLATFORM_NAME = "LitterRobot";
 export const PLUGIN_NAME = "@ddgold/homebridge-litter-robot";
 
 export class LitterRobotPlatform implements DynamicPlatformPlugin {
-	private readonly accessories: Map<string, PlatformAccessory>;
-	private readonly litterRobotAccessories: Map<string, LitterRobotAccessory>;
-	public readonly client: LitterRobotClient;
+	private readonly accessories = new Map<string, [PlatformAccessory, LitterRobotAccessory | undefined]>();
+	public readonly client = new LitterRobotClient();
 
 	constructor(
 		public readonly log: Logger,
 		public readonly config: LitterRobotConfig,
 		public readonly api: API,
 	) {
-		this.accessories = new Map<string, PlatformAccessory>();
-		this.litterRobotAccessories = new Map<string, LitterRobotAccessory>();
-		this.client = new LitterRobotClient();
-
 		this.api.on("didFinishLaunching", () => {
 			void this.initializePolling();
 		});
@@ -31,7 +26,7 @@ export class LitterRobotPlatform implements DynamicPlatformPlugin {
 	// Called by Homebridge once per cached accessory on startup — before didFinishLaunching
 	configureAccessory(accessory: PlatformAccessory): void {
 		this.log.info("Loading accessory from cache:", accessory.displayName);
-		this.accessories.set(accessory.UUID, accessory);
+		this.accessories.set(accessory.UUID, [accessory, undefined]);
 	}
 
 	private async initializePolling(): Promise<void> {
@@ -64,30 +59,31 @@ export class LitterRobotPlatform implements DynamicPlatformPlugin {
 			const uuid = this.api.hap.uuid.generate(device.serial);
 			discoveredUUIDs.add(uuid);
 
-			const existingLRAccessory = this.litterRobotAccessories.get(uuid);
-			if (existingLRAccessory) {
-				existingLRAccessory.update(device);
-			} else {
-				const existingPlatformAccessory = this.accessories.get(uuid);
-				if (existingPlatformAccessory) {
-					this.log.debug("Restoring existing accessory:", device.name);
-					this.litterRobotAccessories.set(uuid, new LitterRobotAccessory(this, existingPlatformAccessory, device));
+			const existingAccessory = this.accessories.get(uuid);
+			if (existingAccessory) {
+				const [platformAccessory, robotAccessory] = existingAccessory;
+				if (robotAccessory) {
+					this.log.debug("Updating existing accessory:", device.name);
+					robotAccessory.update(device);
 				} else {
-					this.log.info("Adding new accessory:", device.name);
-					const accessory = new this.api.platformAccessory(device.name, uuid);
-					this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
-					this.accessories.set(uuid, accessory);
-					this.litterRobotAccessories.set(uuid, new LitterRobotAccessory(this, accessory, device));
+					const robotAccessory = new LitterRobotAccessory(this, platformAccessory, device);
+					this.log.debug("Restoring existing accessory:", device.name);
+					this.accessories.set(uuid, [platformAccessory, robotAccessory]);
 				}
+			} else {
+				this.log.info("Adding new accessory:", device.name);
+				const accessory = new this.api.platformAccessory(device.name, uuid);
+				this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+				const robotAccessory = new LitterRobotAccessory(this, accessory, device);
+				this.accessories.set(uuid, [accessory, robotAccessory]);
 			}
 		}
 
-		for (const [uuid, accessory] of this.accessories) {
+		for (const [uuid, [accessory]] of this.accessories) {
 			if (!discoveredUUIDs.has(uuid)) {
 				this.log.info("Removing stale accessory:", accessory.displayName);
 				this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
 				this.accessories.delete(uuid);
-				this.litterRobotAccessories.delete(uuid);
 			}
 		}
 	}
