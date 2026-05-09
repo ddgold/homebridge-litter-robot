@@ -112,12 +112,6 @@ export class LitterRobotClient {
 				name: string;
 				serial: string;
 				espFirmware: string;
-				catDetect: boolean;
-				DFILevelPercent: number;
-				isDFIFull: boolean;
-				isKeypadLockout: boolean;
-				nightLightMode: string;
-				robotCycleState: string;
 				robotStatus: string;
 			}[];
 		}>(
@@ -126,45 +120,24 @@ export class LitterRobotClient {
 					name
 					serial
 					espFirmware
-					catDetect
-					DFILevelPercent
-					isDFIFull
-					isKeypadLockout
-					nightLightMode
-					robotCycleState
 					robotStatus
 				}
 			}`,
 			{ userId },
 		);
 
-		return data.getLitterRobot4ByUser.map((robot) => ({
-			name: robot.name,
-			serial: robot.serial,
-			firmwareVersion: robot.espFirmware ?? "Unknown",
-			catDetected: robot.catDetect,
-			drawerLevelPercent: Math.min(100, Math.max(0, robot.DFILevelPercent ?? 0)),
-			isCleaning: !!robot.robotCycleState && robot.robotCycleState !== "",
-			isDrawerFull: robot.isDFIFull,
-			isKeypadLocked: robot.isKeypadLockout,
-			isPoweredOn: !!robot.robotStatus && robot.robotStatus !== "OFF",
-			nightLightEnabled: robot.nightLightMode !== "OFF",
-		}));
+		return data.getLitterRobot4ByUser.map((robot) => {
+			return {
+				name: robot.name,
+				serial: robot.serial,
+				firmwareVersion: robot.espFirmware ?? "Unknown",
+				isPoweredOn: robot.robotStatus === "ROBOT_POWER_OFF",
+				isCleaning: robot.robotStatus === "ROBOT_CLEAN",
+			};
+		});
 	}
 
 	async startCleaning(serial: string): Promise<void> {
 		await this.sendCommand(serial, "cleanCycle");
-	}
-
-	async setPower(serial: string, on: boolean): Promise<void> {
-		await this.sendCommand(serial, on ? "powerOn" : "powerOff");
-	}
-
-	async setPanelLock(serial: string, locked: boolean): Promise<void> {
-		await this.sendCommand(serial, "setPanelLockout", locked ? "true" : "false");
-	}
-
-	async setNightLight(serial: string, enabled: boolean): Promise<void> {
-		await this.sendCommand(serial, enabled ? "nightLightModeOn" : "nightLightModeOff");
 	}
 }
