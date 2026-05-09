@@ -25,7 +25,8 @@ export class LitterRobotAccessory {
 			.getService(Service.AccessoryInformation)!
 			.setCharacteristic(Characteristic.Manufacturer, "Whisker")
 			.setCharacteristic(Characteristic.Model, "Litter Robot 4")
-			.setCharacteristic(Characteristic.SerialNumber, device.serial);
+			.setCharacteristic(Characteristic.SerialNumber, device.serial)
+			.setCharacteristic(Characteristic.FirmwareRevision, device.firmwareVersion);
 
 		// Clean switch
 		const cleanService =

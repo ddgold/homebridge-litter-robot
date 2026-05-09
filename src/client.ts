@@ -111,6 +111,7 @@ export class LitterRobotClient {
 			getLitterRobot4ByUser: {
 				name: string;
 				serial: string;
+				espFirmware: string;
 				catDetect: boolean;
 				DFILevelPercent: number;
 				isDFIFull: boolean;
@@ -124,6 +125,7 @@ export class LitterRobotClient {
 				getLitterRobot4ByUser(userId: $userId) {
 					name
 					serial
+					espFirmware
 					catDetect
 					DFILevelPercent
 					isDFIFull
@@ -139,6 +141,7 @@ export class LitterRobotClient {
 		return data.getLitterRobot4ByUser.map((robot) => ({
 			name: robot.name,
 			serial: robot.serial,
+			firmwareVersion: robot.espFirmware ?? "Unknown",
 			catDetected: robot.catDetect,
 			drawerLevelPercent: Math.min(100, Math.max(0, robot.DFILevelPercent ?? 0)),
 			isCleaning: !!robot.robotCycleState && robot.robotCycleState !== "",
