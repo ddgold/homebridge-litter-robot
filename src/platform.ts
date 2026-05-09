@@ -11,12 +11,12 @@ export const PLUGIN_NAME = "@ddgold/homebridge-litter-robot";
 
 export class LitterRobotPlatform implements DynamicPlatformPlugin {
 	private readonly accessories = new Map<string, [PlatformAccessory, LitterRobotAccessory | undefined]>();
-	public readonly client = new LitterRobotClient();
+	readonly client = new LitterRobotClient();
 
 	constructor(
-		public readonly log: Logger,
-		public readonly config: LitterRobotConfig,
-		public readonly api: API,
+		readonly log: Logger,
+		readonly config: LitterRobotConfig,
+		readonly api: API,
 	) {
 		this.api.on("didFinishLaunching", () => {
 			void this.initializePolling();

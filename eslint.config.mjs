@@ -11,5 +11,6 @@ export default tseslint.config({ ignores: ["dist/**"] }, ...tseslint.configs.rec
 	},
 	rules: {
 		"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+		"@typescript-eslint/explicit-member-accessibility": ["error", { accessibility: "no-public" }],
 	},
 });
