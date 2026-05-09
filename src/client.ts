@@ -5,6 +5,13 @@ const USER_POOL_ID = "us-east-1_rjhNnZVAm";
 const CLIENT_ID = "4552ujeu3aic90nf8qn53levmn";
 const GRAPHQL_URL = "https://lr4.iothings.site/graphql";
 
+interface LitterRobotRawData {
+	name: string;
+	serial: string;
+	espFirmware: string;
+	robotStatus: string;
+}
+
 export class LitterRobotClient {
 	private session: CognitoUserSession | null = null;
 	private cognitoUser: CognitoUser | null = null;
@@ -104,16 +111,21 @@ export class LitterRobotClient {
 		this.cognitoUser = user;
 	}
 
+	private parseDevice(raw: LitterRobotRawData): LitterRobotDevice {
+		return {
+			name: raw.name,
+			serial: raw.serial,
+			firmwareVersion: raw.espFirmware ?? "Unknown",
+			isPoweredOn: raw.robotStatus === "ROBOT_POWER_OFF",
+			isCleaning: raw.robotStatus === "ROBOT_CLEAN",
+		};
+	}
+
 	async getDevices(): Promise<LitterRobotDevice[]> {
 		const userId = this.getUserId();
 
 		const data = await this.runGraphqlQuery<{
-			getLitterRobot4ByUser: {
-				name: string;
-				serial: string;
-				espFirmware: string;
-				robotStatus: string;
-			}[];
+			getLitterRobot4ByUser: LitterRobotRawData[];
 		}>(
 			`query GetLR4ByUser($userId: String!) {
 				getLitterRobot4ByUser(userId: $userId) {
@@ -126,15 +138,7 @@ export class LitterRobotClient {
 			{ userId },
 		);
 
-		return data.getLitterRobot4ByUser.map((robot) => {
-			return {
-				name: robot.name,
-				serial: robot.serial,
-				firmwareVersion: robot.espFirmware ?? "Unknown",
-				isPoweredOn: robot.robotStatus === "ROBOT_POWER_OFF",
-				isCleaning: robot.robotStatus === "ROBOT_CLEAN",
-			};
-		});
+		return data.getLitterRobot4ByUser.map((raw) => this.parseDevice(raw));
 	}
 
 	async startCleaning(serial: string): Promise<void> {
