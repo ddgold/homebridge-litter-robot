@@ -16,7 +16,7 @@ export class LitterRobotClient {
 			throw new Error("Failed to ensure valid token, not authorized");
 		}
 
-		return this.session.getIdToken().decodePayload()["sub"] as string;
+		return this.session.getIdToken().decodePayload()["mid"] as string;
 	}
 
 	private async validateToken(): Promise<string> {
