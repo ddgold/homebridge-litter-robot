@@ -4,6 +4,8 @@ import { LitterRobotDevice } from "./device.js";
 const USER_POOL_ID = "us-east-1_rjhNnZVAm";
 const CLIENT_ID = "4552ujeu3aic90nf8qn53levmn";
 const GRAPHQL_URL = "https://lr4.iothings.site/graphql";
+const GRAPHQL_WS_URL = "wss://lr4.iothings.site/graphql/realtime";
+const GRAPHQL_WS_HOST = "lr4.iothings.site";
 
 interface LitterRobotRawData {
 	name: string;
@@ -124,9 +126,7 @@ export class LitterRobotClient {
 	async getDevices(): Promise<LitterRobotDevice[]> {
 		const userId = this.getUserId();
 
-		const data = await this.runGraphqlQuery<{
-			getLitterRobot4ByUser: LitterRobotRawData[];
-		}>(
+		const data = await this.runGraphqlQuery<{ getLitterRobot4ByUser: LitterRobotRawData[] }>(
 			`query GetLR4ByUser($userId: String!) {
 				getLitterRobot4ByUser(userId: $userId) {
 					name
@@ -139,6 +139,115 @@ export class LitterRobotClient {
 		);
 
 		return data.getLitterRobot4ByUser.map((raw) => this.parseDevice(raw));
+	}
+
+	private openWebSocket(token: string): WebSocket {
+		const header = Buffer.from(
+			JSON.stringify({
+				Authorization: `Bearer ${token}`,
+				host: GRAPHQL_WS_HOST,
+			}),
+		).toString("base64");
+
+		const payload = Buffer.from("{}").toString("base64");
+
+		return new WebSocket(`${GRAPHQL_WS_URL}?header=${header}&payload=${payload}`, "graphql-ws");
+	}
+
+	private buildSubscriptionMessage(subscriptionId: string, serial: string, token: string): string {
+		return JSON.stringify({
+			id: subscriptionId,
+			type: "start",
+			payload: {
+				data: JSON.stringify({
+					query: `subscription GetLR4BySerial($serial: String!) {
+						litterRobot4StateSubscriptionBySerial(serial: $serial) {
+							name
+							serial
+							espFirmware
+							robotStatus
+						}
+					}`,
+					variables: { serial },
+				}),
+				extensions: { authorization: { Authorization: `Bearer ${token}`, host: GRAPHQL_WS_HOST } },
+			},
+		});
+	}
+
+	subscribeToDevice(
+		serial: string,
+		onUpdate: (device: LitterRobotDevice) => void,
+		onLog: (message: string, ...parameters: unknown[]) => void,
+		onError: (message: string, ...parameters: unknown[]) => void,
+	): () => void {
+		let ws: WebSocket | null = null;
+		let stopped = false;
+		let reconnectDelay = 1_000;
+		let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+		const scheduleReconnect = () => {
+			if (stopped) return;
+			reconnectTimeout = setTimeout(() => void connect(), reconnectDelay);
+			reconnectDelay = Math.min(reconnectDelay * 2, 300_000);
+		};
+
+		const connect = async () => {
+			if (stopped) return;
+
+			let token: string;
+			try {
+				token = await this.validateToken();
+			} catch {
+				scheduleReconnect();
+				return;
+			}
+
+			ws = this.openWebSocket(token);
+			const subscriptionId = crypto.randomUUID();
+
+			ws.onopen = () => {
+				reconnectDelay = 1_000;
+				ws!.send(this.buildSubscriptionMessage(subscriptionId, serial, token));
+				onLog(`WebSocket connected for ${serial}`);
+			};
+
+			ws.onmessage = (event) => {
+				const msg = JSON.parse(event.data as string) as {
+					type: string;
+					id?: string;
+					payload?: {
+						data?: {
+							litterRobot4StateSubscriptionBySerial?: LitterRobotRawData;
+						};
+					};
+				};
+				if (msg.type === "data") {
+					const raw = msg.payload?.data?.litterRobot4StateSubscriptionBySerial;
+					if (raw) {
+						onUpdate(this.parseDevice(raw));
+					}
+				} else if (msg.type === "error" || msg.type === "complete") {
+					scheduleReconnect();
+				}
+			};
+
+			ws.onerror = (event) => {
+				onError(`WebSocket error for ${serial}:`, event);
+			};
+
+			ws.onclose = () => {
+				if (!stopped) scheduleReconnect();
+			};
+		};
+
+		void connect();
+
+		return () => {
+			stopped = true;
+			if (reconnectTimeout !== null) clearTimeout(reconnectTimeout);
+			ws?.close();
+		};
 	}
 
 	async startCleaning(serial: string): Promise<void> {
