@@ -3,6 +3,7 @@ import { LitterRobotDevice } from "./device.js";
 import { LitterRobotPlatform } from "./platform.js";
 
 export class LitterRobotAccessory {
+	private readonly nameChar;
 	private readonly cleanChar;
 	private readonly powerChar;
 	private readonly panelLockCurrentChar;
@@ -21,12 +22,13 @@ export class LitterRobotAccessory {
 		const { Characteristic, Service } = platform.api.hap;
 
 		// Accessory Information
-		accessory
-			.getService(Service.AccessoryInformation)!
+		const infoService = accessory.getService(Service.AccessoryInformation)!;
+		infoService
 			.setCharacteristic(Characteristic.Manufacturer, "Whisker")
 			.setCharacteristic(Characteristic.Model, "Litter Robot 4")
 			.setCharacteristic(Characteristic.SerialNumber, device.serial)
 			.setCharacteristic(Characteristic.FirmwareRevision, device.firmwareVersion);
+		this.nameChar = infoService.getCharacteristic(Characteristic.Name);
 
 		// Clean switch
 		const cleanService =
@@ -132,6 +134,7 @@ export class LitterRobotAccessory {
 	update(device: LitterRobotDevice): void {
 		const { Characteristic } = this.platform.api.hap;
 
+		this.nameChar.updateValue(device.name);
 		this.powerChar.updateValue(device.isPoweredOn);
 		this.panelLockCurrentChar.updateValue(
 			device.isKeypadLocked ? Characteristic.LockCurrentState.SECURED : Characteristic.LockCurrentState.UNSECURED,
