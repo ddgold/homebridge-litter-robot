@@ -140,7 +140,7 @@ export class LitterRobotClient {
 			name: robot.name,
 			serial: robot.serial,
 			catDetected: robot.catDetect,
-			drawerLevelPercent: robot.DFILevelPercent ?? 0,
+			drawerLevelPercent: Math.min(100, Math.max(0, robot.DFILevelPercent ?? 0)),
 			isCleaning: !!robot.robotCycleState && robot.robotCycleState !== "",
 			isDrawerFull: robot.isDFIFull,
 			isKeypadLocked: robot.isKeypadLockout,
