@@ -5,7 +5,8 @@ import { LitterRobotPlatform } from "./platform.js";
 export class LitterRobotAccessory {
 	private readonly cleanChar;
 	private readonly powerChar;
-	private readonly panelLockChar;
+	private readonly panelLockCurrentChar;
+	private readonly panelLockTargetChar;
 	private readonly nightLightChar;
 	private readonly occupancyChar;
 	private readonly filterChangeChar;
@@ -57,25 +58,33 @@ export class LitterRobotAccessory {
 		});
 		cleanService.addLinkedService(powerService);
 
-		// Panel lock switch
+		// Panel lock
 		const panelLockService =
-			accessory.getServiceById(Service.Switch, "panel-lock") ??
-			accessory.addService(Service.Switch, "Panel Lock", "panel-lock");
-		this.panelLockChar = panelLockService.getCharacteristic(Characteristic.On);
-		this.panelLockChar.onGet((): CharacteristicValue => device.isKeypadLocked);
-		this.panelLockChar.onSet(async (value: CharacteristicValue) => {
+			accessory.getServiceById(Service.LockMechanism, "panel-lock") ??
+			accessory.addService(Service.LockMechanism, "Panel Lock", "panel-lock");
+		this.panelLockCurrentChar = panelLockService.getCharacteristic(Characteristic.LockCurrentState);
+		this.panelLockCurrentChar.onGet(
+			(): CharacteristicValue =>
+				device.isKeypadLocked ? Characteristic.LockCurrentState.SECURED : Characteristic.LockCurrentState.UNSECURED,
+		);
+		this.panelLockTargetChar = panelLockService.getCharacteristic(Characteristic.LockTargetState);
+		this.panelLockTargetChar.onGet(
+			(): CharacteristicValue =>
+				device.isKeypadLocked ? Characteristic.LockTargetState.SECURED : Characteristic.LockTargetState.UNSECURED,
+		);
+		this.panelLockTargetChar.onSet(async (value: CharacteristicValue) => {
 			try {
-				await platform.client.setPanelLock(device.serial, value as boolean);
+				await platform.client.setPanelLock(device.serial, value === Characteristic.LockTargetState.SECURED);
 			} catch (error) {
 				platform.log.error("Failed to set panel lock:", error);
 			}
 		});
 		cleanService.addLinkedService(panelLockService);
 
-		// Night light switch
+		// Night light
 		const nightLightService =
-			accessory.getServiceById(Service.Switch, "night-light") ??
-			accessory.addService(Service.Switch, "Night Light", "night-light");
+			accessory.getServiceById(Service.Lightbulb, "night-light") ??
+			accessory.addService(Service.Lightbulb, "Night Light", "night-light");
 		this.nightLightChar = nightLightService.getCharacteristic(Characteristic.On);
 		this.nightLightChar.onGet((): CharacteristicValue => device.nightLightEnabled);
 		this.nightLightChar.onSet(async (value: CharacteristicValue) => {
@@ -123,7 +132,12 @@ export class LitterRobotAccessory {
 		const { Characteristic } = this.platform.api.hap;
 
 		this.powerChar.updateValue(device.isPoweredOn);
-		this.panelLockChar.updateValue(device.isKeypadLocked);
+		this.panelLockCurrentChar.updateValue(
+			device.isKeypadLocked ? Characteristic.LockCurrentState.SECURED : Characteristic.LockCurrentState.UNSECURED,
+		);
+		this.panelLockTargetChar.updateValue(
+			device.isKeypadLocked ? Characteristic.LockTargetState.SECURED : Characteristic.LockTargetState.UNSECURED,
+		);
 		this.nightLightChar.updateValue(device.nightLightEnabled);
 		this.occupancyChar.updateValue(
 			device.catDetected
