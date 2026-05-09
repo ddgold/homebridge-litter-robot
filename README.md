@@ -66,6 +66,33 @@ Power, Panel Lock, and Night Light are nested under the Clean button in the Home
 | Waste Drawer | Filter Maintenance | Shows a change alert when the drawer is full; displays fill level as a percentage |
 | Cleaning     | Motion Sensor      | Active while a cleaning cycle is in progress                                      |
 
+## Development
+
+A test script is included for manually exercising the Whisker API without running Homebridge.
+
+**Setup:** Create a `.whiskerCredentials` file in the project root with your email on line 1 and password on line 2:
+
+```
+your@email.com
+yourpassword
+```
+
+**Build and run:**
+
+```bash
+npm run build
+node dist/test.js <command>
+```
+
+**Commands:**
+
+| Command               | Description                                          |
+| --------------------- | ---------------------------------------------------- |
+| `get`                 | Fetch and print all devices as JSON                  |
+| `subscribe <serial>`  | Stream live device updates, each prefixed with a timestamp |
+| `clean <serial>`      | Trigger an immediate cleaning cycle                  |
+| `help`                | Show available commands                              |
+
 ## Acknowledgements
 
 The Whisker API used by this plugin was reverse-engineered by [Nathan Spencer](https://github.com/natekspencer), whose work on [pylitterbot](https://github.com/natekspencer/pylitterbot) made this possible.
