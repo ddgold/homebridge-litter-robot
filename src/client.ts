@@ -73,20 +73,6 @@ export class LitterRobotClient {
 		return json.data as T;
 	}
 
-	private async sendCommand(serial: string, command: string, value?: string): Promise<void> {
-		await this.runGraphqlQuery<unknown>(
-			`mutation sendCommand($serial: String!, $command: String!, $value: String) {
-				sendLitterRobot4Command(input: {
-					serial: $serial
-					command: $command
-					value: $value
-					commandSource: "homebridge"
-				})
-			}`,
-			{ serial, command, value },
-		);
-	}
-
 	async connect({ username, password }: { username: string; password: string }): Promise<void> {
 		const pool = new CognitoUserPool({
 			UserPoolId: USER_POOL_ID,
@@ -118,7 +104,7 @@ export class LitterRobotClient {
 			name: raw.name,
 			serial: raw.serial,
 			firmwareVersion: raw.espFirmware ?? "Unknown",
-			isPoweredOn: raw.robotStatus === "ROBOT_POWER_OFF",
+			isPoweredOn: raw.robotStatus !== "ROBOT_POWER_OFF",
 			isCleaning: raw.robotStatus === "ROBOT_CLEAN",
 		};
 	}
@@ -139,6 +125,24 @@ export class LitterRobotClient {
 		);
 
 		return data.getLitterRobot4ByUser.map((raw) => this.parseDevice(raw));
+	}
+
+	private async sendCommand(serial: string, command: string, value?: string): Promise<void> {
+		await this.runGraphqlQuery<unknown>(
+			`mutation sendCommand($serial: String!, $command: String!, $value: String) {
+				sendLitterRobot4Command(input: {
+					serial: $serial
+					command: $command
+					value: $value
+					commandSource: "homebridge"
+				})
+			}`,
+			{ serial, command, value },
+		);
+	}
+
+	async startCleaning(serial: string): Promise<void> {
+		await this.sendCommand(serial, "cleanCycle");
 	}
 
 	private openWebSocket(token: string): WebSocket {
@@ -248,9 +252,5 @@ export class LitterRobotClient {
 			if (reconnectTimeout !== null) clearTimeout(reconnectTimeout);
 			ws?.close();
 		};
-	}
-
-	async startCleaning(serial: string): Promise<void> {
-		await this.sendCommand(serial, "cleanCycle");
 	}
 }
