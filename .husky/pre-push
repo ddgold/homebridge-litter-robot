@@ -1,0 +1,2 @@
+#!/bin/sh
+npm run lint && prettier --check src/ && npm run build

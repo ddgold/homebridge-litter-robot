@@ -68,30 +68,48 @@ Power, Panel Lock, and Night Light are nested under the Clean button in the Home
 
 ## Development
 
-A test script is included for manually exercising the Whisker API without running Homebridge.
+**Setup:**
 
-**Setup:** Create a `.whiskerCredentials` file in the project root with your email on line 1 and password on line 2:
+```bash
+npm install
+```
+
+`npm install` builds the project and installs a pre-push git hook (via Husky) that runs lint, format check, and build before every push.
+
+Create a `.whiskerCredentials` file in the project root with your email on line 1 and password on line 2:
 
 ```
 your@email.com
 yourpassword
 ```
 
-**Build and run:**
+**Test script:**
 
 ```bash
-npm run build
-node dist/test.js <command>
+npm run console -- <command>
 ```
 
-**Commands:**
+| Command              | Description                         |
+| -------------------- | ----------------------------------- |
+| `get`                | Fetch and print all devices as JSON |
+| `subscribe <serial>` | Stream live device updates          |
+| `clean <serial>`     | Trigger an immediate cleaning cycle |
+| `help`               | Show available commands             |
 
-| Command               | Description                                          |
-| --------------------- | ---------------------------------------------------- |
-| `get`                 | Fetch and print all devices as JSON                  |
-| `subscribe <serial>`  | Stream live device updates, each prefixed with a timestamp |
-| `clean <serial>`      | Trigger an immediate cleaning cycle                  |
-| `help`                | Show available commands                              |
+## Publishing
+
+1. Bump the version in `package.json` following [semver](https://semver.org):
+   - Patch (`0.0.x`) — bug fixes
+   - Minor (`0.x.0`) — new features, backwards-compatible
+   - Major (`x.0.0`) — breaking changes
+
+2. Publish to npm:
+
+   ```bash
+   npm publish
+   ```
+
+   Lint, format check, and build run automatically before publishing. Public access is set by default via `publishConfig` in `package.json`.
 
 ## Acknowledgements
 
