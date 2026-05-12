@@ -18,12 +18,11 @@
 				"type": "string",
 				"required": true
 			},
-			"pollRate": {
-				"title": "Poll Rate",
-				"description": "How often (in seconds) to sync devices from the Whisker API. Defaults to 300 (5 minutes).",
-				"type": "integer",
-				"minimum": 60,
-				"default": 300
+			"showMotionSensor": {
+				"title": "Show Motion Sensor",
+				"description": "Expose the cleaning cycle as a Motion Sensor in HomeKit. Defaults to true.",
+				"type": "boolean",
+				"default": true
 			},
 			"showNightLight": {
 				"title": "Night Light",
@@ -41,7 +40,29 @@
 				"description": "Expose the waste drawer as a Filter Maintenance accessory in HomeKit. Defaults to true.",
 				"type": "boolean",
 				"default": true
+			},
+			"pollRate": {
+				"title": "Poll Rate",
+				"description": "How often (in seconds) to sync devices from the Whisker API. Defaults to 300 (5 minutes).",
+				"type": "integer",
+				"minimum": 60,
+				"default": 300
 			}
 		}
-	}
+	},
+	"layout": [
+		{
+			"type": "tabs",
+			"tabs": [
+				{
+					"title": "Account",
+					"items": ["username", { "key": "password", "type": "password" }]
+				},
+				{
+					"title": "Features",
+					"items": ["showMotionSensor", "showNightLight", "showWasteDrawer", "pollRate"]
+				}
+			]
+		}
+	]
 }

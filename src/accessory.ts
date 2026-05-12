@@ -5,7 +5,7 @@ import { LitterRobotPlatform } from "./platform.js";
 export class LitterRobotAccessory {
 	private readonly nameChar: Characteristic;
 	private readonly cleanChar: Characteristic;
-	private readonly motionChar: Characteristic;
+	private readonly motionChar?: Characteristic;
 	private readonly nightLightChar?: Characteristic;
 	private readonly filterChangeChar?: Characteristic;
 	private readonly filterLifeChar?: Characteristic;
@@ -49,11 +49,13 @@ export class LitterRobotAccessory {
 		});
 		cleanService.setPrimaryService(true);
 
-		// Motion sensor — cleaning cycle in progress
-		const motionService =
-			accessory.getService(Service.MotionSensor) ?? accessory.addService(Service.MotionSensor, "Cleaning");
-		this.motionChar = motionService.getCharacteristic(Characteristic.MotionDetected);
-		this.motionChar.onGet((): CharacteristicValue => device.isCleaning);
+		// Motion sensor — cleaning cycle in progress (optional)
+		if (platform.config.showMotionSensor !== false) {
+			const motionService =
+				accessory.getService(Service.MotionSensor) ?? accessory.addService(Service.MotionSensor, "Cleaning");
+			this.motionChar = motionService.getCharacteristic(Characteristic.MotionDetected);
+			this.motionChar.onGet((): CharacteristicValue => device.isCleaning);
+		}
 
 		// Night light (optional)
 		if (platform.config.showNightLight !== "false") {
@@ -94,7 +96,7 @@ export class LitterRobotAccessory {
 
 		this.device = device;
 		this.nameChar.updateValue(device.name);
-		this.motionChar.updateValue(device.isCleaning);
+		this.motionChar?.updateValue(device.isCleaning);
 		this.nightLightChar?.updateValue(device.nightLightEnabled);
 		this.filterChangeChar?.updateValue(
 			device.isDrawerFull
