@@ -12,6 +12,8 @@ interface LitterRobotRawData {
 	serial: string;
 	espFirmware: string;
 	robotStatus: string;
+	isDFIFull: boolean;
+	DFILevelPercent: number;
 }
 
 export class LitterRobotClient {
@@ -106,6 +108,8 @@ export class LitterRobotClient {
 			firmwareVersion: raw.espFirmware ?? "Unknown",
 			isPoweredOn: raw.robotStatus !== "ROBOT_POWER_OFF",
 			isCleaning: raw.robotStatus === "ROBOT_CLEAN",
+			isDrawerFull: raw.isDFIFull,
+			drawerLevelPercent: Math.min(100, Math.max(0, raw.DFILevelPercent ?? 0)),
 		};
 	}
 
@@ -119,6 +123,8 @@ export class LitterRobotClient {
 					serial
 					espFirmware
 					robotStatus
+					isDFIFull
+					DFILevelPercent
 				}
 			}`,
 			{ userId },
@@ -170,6 +176,8 @@ export class LitterRobotClient {
 							serial
 							espFirmware
 							robotStatus
+							isDFIFull
+							DFILevelPercent
 						}
 					}`,
 					variables: { serial },

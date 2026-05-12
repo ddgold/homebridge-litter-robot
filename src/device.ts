@@ -4,4 +4,6 @@ export interface LitterRobotDevice {
 	firmwareVersion: string;
 	isPoweredOn: boolean;
 	isCleaning: boolean;
+	isDrawerFull: boolean;
+	drawerLevelPercent: number;
 }

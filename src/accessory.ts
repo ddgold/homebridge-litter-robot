@@ -1,11 +1,13 @@
-import { CharacteristicValue, PlatformAccessory } from "homebridge";
+import { type Characteristic, CharacteristicValue, PlatformAccessory } from "homebridge";
 import { LitterRobotDevice } from "./device.js";
 import { LitterRobotPlatform } from "./platform.js";
 
 export class LitterRobotAccessory {
-	private readonly nameChar;
-	private readonly cleanChar;
-	private readonly motionChar;
+	private readonly nameChar: Characteristic;
+	private readonly cleanChar: Characteristic;
+	private readonly motionChar: Characteristic;
+	private readonly filterChangeChar?: Characteristic;
+	private readonly filterLifeChar?: Characteristic;
 
 	constructor(
 		private readonly platform: LitterRobotPlatform,
@@ -51,11 +53,35 @@ export class LitterRobotAccessory {
 			accessory.getService(Service.MotionSensor) ?? accessory.addService(Service.MotionSensor, "Cleaning");
 		this.motionChar = motionService.getCharacteristic(Characteristic.MotionDetected);
 		this.motionChar.onGet((): CharacteristicValue => device.isCleaning);
+
+		// Filter maintenance — waste drawer (optional)
+		if (platform.config.showWasteDrawer !== false) {
+			const filterService =
+				accessory.getService(Service.FilterMaintenance) ??
+				accessory.addService(Service.FilterMaintenance, "Waste Drawer");
+			this.filterChangeChar = filterService.getCharacteristic(Characteristic.FilterChangeIndication);
+			this.filterChangeChar.onGet(
+				(): CharacteristicValue =>
+					this.device.isDrawerFull
+						? Characteristic.FilterChangeIndication.CHANGE_FILTER
+						: Characteristic.FilterChangeIndication.FILTER_OK,
+			);
+			this.filterLifeChar = filterService.getCharacteristic(Characteristic.FilterLifeLevel);
+			this.filterLifeChar.onGet((): CharacteristicValue => 100 - this.device.drawerLevelPercent);
+		}
 	}
 
 	update(device: LitterRobotDevice): void {
+		const { Characteristic } = this.platform.api.hap;
+
 		this.device = device;
 		this.nameChar.updateValue(device.name);
 		this.motionChar.updateValue(device.isCleaning);
+		this.filterChangeChar?.updateValue(
+			device.isDrawerFull
+				? Characteristic.FilterChangeIndication.CHANGE_FILTER
+				: Characteristic.FilterChangeIndication.FILTER_OK,
+		);
+		this.filterLifeChar?.updateValue(100 - device.drawerLevelPercent);
 	}
 }

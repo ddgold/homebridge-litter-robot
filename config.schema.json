@@ -24,6 +24,12 @@
 				"type": "integer",
 				"minimum": 60,
 				"default": 300
+			},
+			"showWasteDrawer": {
+				"title": "Show Waste Drawer",
+				"description": "Expose the waste drawer as a Filter Maintenance accessory in HomeKit. Defaults to true.",
+				"type": "boolean",
+				"default": true
 			}
 		}
 	}
