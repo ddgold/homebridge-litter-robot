@@ -10,9 +10,9 @@ export class LitterRobotAccessory {
 	constructor(
 		private readonly platform: LitterRobotPlatform,
 		accessory: PlatformAccessory,
-		device: LitterRobotDevice,
+		private device: LitterRobotDevice,
 	) {
-		const { Characteristic, Service } = platform.api.hap;
+		const { Characteristic, HapStatusError, HAPStatus, Service } = platform.api.hap;
 
 		// Accessory Information
 		const infoService = accessory.getService(Service.AccessoryInformation)!;
@@ -30,10 +30,16 @@ export class LitterRobotAccessory {
 		this.cleanChar.onGet((): CharacteristicValue => false);
 		this.cleanChar.onSet(async (value: CharacteristicValue) => {
 			if (value) {
+				if (this.device.isCleaning || !this.device.isPoweredOn) {
+					platform.log.error("Failed to start cleaning cycle: invalid state");
+					throw new HapStatusError(HAPStatus.NOT_ALLOWED_IN_CURRENT_STATE);
+				}
+
 				try {
 					await platform.client.startCleaning(device.serial);
 				} catch (error) {
 					platform.log.error("Failed to start cleaning cycle:", error);
+					throw new HapStatusError(HAPStatus.NOT_ALLOWED_IN_CURRENT_STATE);
 				}
 				setTimeout(() => this.cleanChar.updateValue(false), 500);
 			}
@@ -48,6 +54,7 @@ export class LitterRobotAccessory {
 	}
 
 	update(device: LitterRobotDevice): void {
+		this.device = device;
 		this.nameChar.updateValue(device.name);
 		this.motionChar.updateValue(device.isCleaning);
 	}
