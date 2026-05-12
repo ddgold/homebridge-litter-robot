@@ -25,6 +25,17 @@
 				"minimum": 60,
 				"default": 300
 			},
+			"showNightLight": {
+				"title": "Night Light",
+				"description": "Controls the night light in HomeKit. 'true' exposes it and sets On mode, 'auto' exposes it and sets Auto mode, 'false' hides it. Defaults to true.",
+				"type": "string",
+				"default": "true",
+				"oneOf": [
+					{ "title": "true", "enum": ["true"] },
+					{ "title": "auto", "enum": ["auto"] },
+					{ "title": "false", "enum": ["false"] }
+				]
+			},
 			"showWasteDrawer": {
 				"title": "Show Waste Drawer",
 				"description": "Expose the waste drawer as a Filter Maintenance accessory in HomeKit. Defaults to true.",

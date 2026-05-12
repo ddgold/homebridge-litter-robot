@@ -6,6 +6,7 @@ export class LitterRobotAccessory {
 	private readonly nameChar: Characteristic;
 	private readonly cleanChar: Characteristic;
 	private readonly motionChar: Characteristic;
+	private readonly nightLightChar?: Characteristic;
 	private readonly filterChangeChar?: Characteristic;
 	private readonly filterLifeChar?: Characteristic;
 
@@ -54,6 +55,23 @@ export class LitterRobotAccessory {
 		this.motionChar = motionService.getCharacteristic(Characteristic.MotionDetected);
 		this.motionChar.onGet((): CharacteristicValue => device.isCleaning);
 
+		// Night light (optional)
+		if (platform.config.showNightLight !== "false") {
+			const nightLightService =
+				accessory.getServiceById(Service.Lightbulb, "night-light") ??
+				accessory.addService(Service.Lightbulb, "Night Light", "night-light");
+			this.nightLightChar = nightLightService.getCharacteristic(Characteristic.On);
+			this.nightLightChar.onGet((): CharacteristicValue => this.device.nightLightEnabled);
+			this.nightLightChar.onSet(async (value: CharacteristicValue) => {
+				try {
+					const mode = value ? (platform.config.nightLight === "auto" ? "auto" : "on") : "off";
+					await platform.client.setNightLight(device.serial, mode);
+				} catch (error) {
+					platform.log.error("Failed to set night light:", error);
+				}
+			});
+		}
+
 		// Filter maintenance — waste drawer (optional)
 		if (platform.config.showWasteDrawer !== false) {
 			const filterService =
@@ -77,6 +95,7 @@ export class LitterRobotAccessory {
 		this.device = device;
 		this.nameChar.updateValue(device.name);
 		this.motionChar.updateValue(device.isCleaning);
+		this.nightLightChar?.updateValue(device.nightLightEnabled);
 		this.filterChangeChar?.updateValue(
 			device.isDrawerFull
 				? Characteristic.FilterChangeIndication.CHANGE_FILTER

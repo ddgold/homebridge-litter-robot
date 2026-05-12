@@ -12,6 +12,7 @@ interface LitterRobotRawData {
 	serial: string;
 	espFirmware: string;
 	robotStatus: string;
+	nightLightMode: string;
 	isDFIFull: boolean;
 	DFILevelPercent: number;
 }
@@ -108,6 +109,7 @@ export class LitterRobotClient {
 			firmwareVersion: raw.espFirmware ?? "Unknown",
 			isPoweredOn: raw.robotStatus !== "ROBOT_POWER_OFF",
 			isCleaning: raw.robotStatus === "ROBOT_CLEAN",
+			nightLightEnabled: raw.nightLightMode !== "OFF",
 			isDrawerFull: raw.isDFIFull,
 			drawerLevelPercent: Math.min(100, Math.max(0, raw.DFILevelPercent ?? 0)),
 		};
@@ -123,6 +125,7 @@ export class LitterRobotClient {
 					serial
 					espFirmware
 					robotStatus
+					nightLightMode
 					isDFIFull
 					DFILevelPercent
 				}
@@ -151,6 +154,11 @@ export class LitterRobotClient {
 		await this.sendCommand(serial, "cleanCycle");
 	}
 
+	async setNightLight(serial: string, mode: "on" | "auto" | "off"): Promise<void> {
+		const command = mode === "on" ? "nightLightModeOn" : mode === "auto" ? "nightLightModeAuto" : "nightLightModeOff";
+		await this.sendCommand(serial, command);
+	}
+
 	private openWebSocket(token: string): WebSocket {
 		const header = Buffer.from(
 			JSON.stringify({
@@ -176,6 +184,7 @@ export class LitterRobotClient {
 							serial
 							espFirmware
 							robotStatus
+							nightLightMode
 							isDFIFull
 							DFILevelPercent
 						}
