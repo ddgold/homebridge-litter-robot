@@ -254,11 +254,13 @@ export class LitterRobotClient {
 			};
 
 			ws.onerror = (event) => {
-				onError(`WebSocket error for ${serial}:`, event);
+				const cause = event.error as NodeJS.ErrnoException | undefined;
+				const detail = cause?.code ?? event.message;
+				onError(`WebSocket error for ${serial} (${detail}), will reconnect`);
 			};
 
 			ws.onclose = () => {
-				if (!stopped) scheduleReconnect();
+				scheduleReconnect();
 			};
 		};
 

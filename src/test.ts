@@ -19,12 +19,24 @@ if (!username || !password) {
 }
 
 const client = new LitterRobotClient();
-await client.connect({ username, password });
+try {
+	await client.connect({ username, password });
+} catch (error) {
+	const detail = error instanceof Error ? error.message : String(error);
+	console.error(`Failed to authenticate with Whisker API (${detail})`);
+	process.exit(1);
+}
 
 switch (command) {
 	case "get": {
-		const devices = await client.getDevices();
-		console.log(JSON.stringify(devices, null, 2));
+		try {
+			const devices = await client.getDevices();
+			console.log(JSON.stringify(devices, null, 2));
+		} catch (error) {
+			const cause = error instanceof Error ? (error.cause as NodeJS.ErrnoException) : undefined;
+			const detail = cause?.code ?? (error instanceof Error ? error.message : String(error));
+			console.error(`Failed to fetch devices from Whisker API (${detail}), will retry`);
+		}
 		break;
 	}
 	case "subscribe": {

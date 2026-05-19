@@ -33,7 +33,8 @@ export class LitterRobotPlatform implements DynamicPlatformPlugin {
 		try {
 			await this.client.connect(this.config);
 		} catch (error) {
-			this.log.error("Failed to authenticate with Whisker API:", error);
+			const detail = error instanceof Error ? error.message : String(error);
+			this.log.error(`Failed to authenticate with Whisker API (${detail})`);
 			return;
 		}
 
@@ -50,7 +51,9 @@ export class LitterRobotPlatform implements DynamicPlatformPlugin {
 		try {
 			devices = await this.client.getDevices();
 		} catch (error) {
-			this.log.error("Failed to fetch devices from Whisker API:", error);
+			const cause = error instanceof Error ? (error.cause as NodeJS.ErrnoException) : undefined;
+			const detail = cause?.code ?? (error instanceof Error ? error.message : String(error));
+			this.log.error(`Failed to fetch devices from Whisker API (${detail}), will retry`);
 			return;
 		}
 
