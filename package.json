@@ -2,6 +2,14 @@
 	"name": "@ddgold/homebridge-litter-robot",
 	"version": "0.3.1",
 	"description": "Homebridge plugin for Litter Robot",
+	"homepage": "https://github.com/ddgold/homebridge-litter-robot#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/ddgold/homebridge-litter-robot.git"
+	},
+	"bugs": {
+		"url": "https://github.com/ddgold/homebridge-litter-robot/issues"
+	},
 	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
