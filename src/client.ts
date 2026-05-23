@@ -255,7 +255,7 @@ export class LitterRobotClient {
 
 			ws.onerror = (event) => {
 				const cause = event.error as NodeJS.ErrnoException | undefined;
-				const detail = cause?.code ?? event.message;
+				const detail = cause?.code ?? cause?.message ?? event.message ?? "unknown";
 				onError(`WebSocket error for ${serial} (${detail}), will reconnect`);
 			};
 
