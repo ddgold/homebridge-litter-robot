@@ -37,11 +37,14 @@ Add the platform to your Homebridge `config.json`:
 }
 ```
 
-| Field      | Required | Description                                                                      |
-| ---------- | -------- | -------------------------------------------------------------------------------- |
-| `username` | Yes      | Your Whisker account email                                                       |
-| `password` | Yes      | Your Whisker account password                                                    |
-| `pollRate` | No       | How often (in seconds) to sync device state. Minimum 60, default 300 (5 minutes) |
+| Field             | Required | Description                                                                                                      |
+| ----------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `username`        | Yes      | Your Whisker account email                                                                                       |
+| `password`        | Yes      | Your Whisker account password                                                                                    |
+| `showMotionSensor`| No       | Expose the cleaning cycle as a Motion Sensor in HomeKit. Default: `true`                                         |
+| `showNightLight`  | No       | `"true"` exposes the night light (On mode), `"auto"` exposes it (Auto mode), `"false"` hides it. Default: `"true"` |
+| `showWasteDrawer` | No       | Expose the waste drawer as a Filter Maintenance accessory in HomeKit. Default: `true`                            |
+| `pollRate`        | No       | How often (in seconds) to sync device state. Minimum 60, default 300 (5 minutes)                                |
 
 ## HomeKit Services
 
@@ -49,22 +52,19 @@ Each Litter-Robot 4 appears as a single accessory with the following services:
 
 ### Controls
 
-| Service     | Type             | Description                                                         |
-| ----------- | ---------------- | ------------------------------------------------------------------- |
-| Clean       | Switch (primary) | Triggers an immediate cleaning cycle. Auto-resets to off once sent. |
-| Power       | Switch           | Turns the unit on or off                                            |
-| Panel Lock  | Switch           | Locks or unlocks the control panel                                  |
-| Night Light | Switch           | Turns the night light on or off                                     |
+| Service     | Type              | Description                                                         |
+| ----------- | ----------------- | ------------------------------------------------------------------- |
+| Clean       | Switch (primary)  | Triggers an immediate cleaning cycle. Auto-resets to off once sent. |
+| Night Light | Lightbulb         | Turns the night light on or off. Optional — controlled by `showNightLight`. |
 
-Power, Panel Lock, and Night Light are nested under the Clean button in the Home app detail view.
+Night Light is nested under the Clean button in the Home app detail view.
 
 ### Sensors
 
 | Service      | Type               | Description                                                                       |
 | ------------ | ------------------ | --------------------------------------------------------------------------------- |
-| Occupancy    | Occupancy Sensor   | Active while a cat is detected in the unit                                        |
-| Waste Drawer | Filter Maintenance | Shows a change alert when the drawer is full; displays fill level as a percentage |
-| Cleaning     | Motion Sensor      | Active while a cleaning cycle is in progress                                      |
+| Waste Drawer | Filter Maintenance | Shows a change alert when the drawer is full; displays fill level as a percentage. Optional — controlled by `showWasteDrawer`. |
+| Cleaning     | Motion Sensor      | Active while a cleaning cycle is in progress. Optional — controlled by `showMotionSensor`. |
 
 ## Development
 
