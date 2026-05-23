@@ -3,7 +3,6 @@ import { LitterRobotDevice } from "./device.js";
 import { LitterRobotPlatform } from "./platform.js";
 
 export class LitterRobotAccessory {
-	private readonly nameChar: Characteristic;
 	private readonly cleanChar: Characteristic;
 	private readonly motionChar?: Characteristic;
 	private readonly nightLightChar?: Characteristic;
@@ -24,8 +23,6 @@ export class LitterRobotAccessory {
 			.setCharacteristic(Characteristic.Model, "Litter Robot 4")
 			.setCharacteristic(Characteristic.SerialNumber, device.serial)
 			.setCharacteristic(Characteristic.FirmwareRevision, device.firmwareVersion);
-		this.nameChar = infoService.getCharacteristic(Characteristic.Name);
-
 		// Clean switch
 		const cleanService =
 			accessory.getServiceById(Service.Switch, "clean") ?? accessory.addService(Service.Switch, "Clean", "clean");
@@ -95,7 +92,6 @@ export class LitterRobotAccessory {
 		const { Characteristic } = this.platform.api.hap;
 
 		this.device = device;
-		this.nameChar.updateValue(device.name);
 		this.motionChar?.updateValue(device.isCleaning);
 		this.nightLightChar?.updateValue(device.nightLightEnabled);
 		this.filterChangeChar?.updateValue(
